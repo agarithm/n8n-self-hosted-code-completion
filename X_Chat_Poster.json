@@ -1,0 +1,358 @@
+{
+  "name": "X Chat Poster",
+  "nodes": [
+    {
+      "parameters": {
+        "text": "=agarithm asks:  {{ $('Chatted').item.json.asked }}\n#n8n #ollama",
+        "additionalFields": {}
+      },
+      "id": "23381238-8306-4b07-b413-2da52b79fe4c",
+      "name": "New Thread",
+      "type": "n8n-nodes-base.twitter",
+      "typeVersion": 2,
+      "position": [
+        0,
+        -360
+      ],
+      "credentials": {
+        "twitterOAuth2Api": {
+          "id": "oEqi3S2N4FOazR8J",
+          "name": "X account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "=agarithm asks:  {{ $('Chatted').item.json.asked }}\n\n#n8n #ollama",
+        "additionalFields": {
+          "inReplyToStatusId": {
+            "__rl": true,
+            "value": "={{ $node[\"Get Last Tweet ID\"].json[\"stdout\"] }}",
+            "mode": "id"
+          }
+        }
+      },
+      "id": "bfe15a96-a05a-4778-80a4-c6dd4e304730",
+      "name": "Continue Thread",
+      "type": "n8n-nodes-base.twitter",
+      "typeVersion": 2,
+      "position": [
+        0,
+        -140
+      ],
+      "credentials": {
+        "twitterOAuth2Api": {
+          "id": "oEqi3S2N4FOazR8J",
+          "name": "X account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "069e1e10-faa3-494a-81a3-08458794414f",
+      "name": "Chatted",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1560,
+        -440
+      ],
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "text": "=llama answers: {{ $('Chatted').item.json.answered }}\n\n#n8n #ollama",
+        "additionalFields": {
+          "inReplyToStatusId": {
+            "__rl": true,
+            "value": "={{ $json.id }}",
+            "mode": "id"
+          }
+        }
+      },
+      "id": "3d0f8e2b-0be1-4f6a-9efa-8f8f2b4c10c3",
+      "name": "Answered",
+      "type": "n8n-nodes-base.twitter",
+      "typeVersion": 2,
+      "position": [
+        320,
+        -320
+      ],
+      "credentials": {
+        "twitterOAuth2Api": {
+          "id": "oEqi3S2N4FOazR8J",
+          "name": "X account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "ls"
+      },
+      "id": "f2396b0c-5e3b-42c9-83ea-67734b2d9fb5",
+      "name": "LS",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -1260,
+        -520
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a18fad78-b349-445b-b27c-9118266a9398",
+              "leftValue": "={{ $json.stdout }}",
+              "rightValue": "1",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "e3759201-9e85-45ef-af1a-6888fde6ce91",
+      "name": "If-Continue-Chat",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1060,
+        -340
+      ]
+    },
+    {
+      "parameters": {
+        "command": "find twitter -type f -mmin -5 | wc -l"
+      },
+      "id": "1d9f136d-2f11-4933-a256-777aef1e6f0c",
+      "name": "Same Chat (5 Mins)",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -1260,
+        -340
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "18229c89-5f38-48ef-81d5-9049531cc691",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "Command failed",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "45541f8c-d542-4350-9e18-40ac8d5c954e",
+      "name": "If",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -340,
+        -280
+      ]
+    },
+    {
+      "parameters": {
+        "command": "=rm twitter"
+      },
+      "id": "58b6e9d0-1c61-4ff6-9a93-44a40fe22776",
+      "name": "Reset Session",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -840,
+        -180
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "command": "=cat twitter"
+      },
+      "id": "aab1b239-5e31-4ea2-9700-8930bdfc8f88",
+      "name": "Get Last Tweet ID",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -600,
+        -280
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "command": "=echo  {{ $json.id }} > twitter && echo {{  $json.id }}"
+      },
+      "id": "e4b8bfbc-b550-42e4-a8c7-eaf60073d5fa",
+      "name": "Save Last Tweet ID",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        560,
+        -320
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "New Thread": {
+      "main": [
+        [
+          {
+            "node": "Answered",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chatted": {
+      "main": [
+        [
+          {
+            "node": "LS",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Same Chat (5 Mins)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answered": {
+      "main": [
+        [
+          {
+            "node": "Save Last Tweet ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Continue Thread": {
+      "main": [
+        [
+          {
+            "node": "Answered",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If-Continue-Chat": {
+      "main": [
+        [
+          {
+            "node": "Get Last Tweet ID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reset Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Same Chat (5 Mins)": {
+      "main": [
+        [
+          {
+            "node": "If-Continue-Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "New Thread",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Continue Thread",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reset Session": {
+      "main": [
+        [
+          {
+            "node": "Get Last Tweet ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Last Tweet ID": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": 30
+  },
+  "versionId": "a172d1c3-eb0a-4740-b0e2-7b1996a4cef1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "RSW66XU914hDNz1U",
+  "tags": []
+}

@@ -1,0 +1,220 @@
+{
+  "name": "CHAT: Ask and Answer",
+  "nodes": [
+    {
+      "parameters": {
+        "model": "llama3.2:latest",
+        "options": {}
+      },
+      "id": "f203edc3-abad-4063-bd86-376c093193cc",
+      "name": "Ollama Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        340,
+        420
+      ],
+      "credentials": {
+        "ollamaApi": {
+          "id": "xHuYe0MDGOs9IpBW",
+          "name": "Local Ollama service"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "8902ea8b-7cd5-4c50-bc72-5d307626d667",
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.2,
+      "position": [
+        520,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3aadcd0a-5ae4-48a6-ba4b-526987562fcb",
+              "name": "=answered",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "396841b3-3e86-4612-824e-535f63f51495",
+              "name": "session",
+              "value": "={{ $('When chat message received').item.json.sessionId }}",
+              "type": "string"
+            },
+            {
+              "id": "084f88f0-3a9a-4646-9b89-20a88c25c08d",
+              "name": "asked",
+              "value": "={{ $('When chat message received').item.json.chatInput }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ff07768c-09b6-4539-9f0d-8a99863f0713",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        820,
+        160
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "81348d59-4f05-4e4c-958d-9ca6e22fa736",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.manualChatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        200,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "d1af174f-2689-46e2-bc6a-91d255bd8e7a",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [
+        440,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "RSW66XU914hDNz1U",
+          "mode": "list",
+          "cachedResultName": "X Chat Poster"
+        },
+        "options": {}
+      },
+      "id": "08b42932-0db6-424b-8c03-0e6c0cc88b9d",
+      "name": "Execute Workflow",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        1040,
+        160
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c96cec45-24ec-415c-80ad-7c6df7ad9d35",
+              "name": "output",
+              "value": "={{ $('AI Agent').item.json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f5626c06-35b5-4671-a738-56ffe19a92fa",
+      "name": "Edit Fields1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1260,
+        160
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Execute Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "d858fc7c-3ef3-4021-b965-765326a07c6d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "IDG0XRReNIDepcPp",
+  "tags": []
+}
